@@ -1,5 +1,8 @@
 //! The file contains the Edge struct and its methods.
 
+// External crates
+use serde::{Deserialize, Serialize};
+
 // Internal modules
 use super::node::Node;
 
@@ -11,6 +14,7 @@ use super::node::Node;
 /// * `from` - The node from which the edge originates
 /// * `to` - The node to which the edge points
 /// * `weight` - The weight of the edge
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Edge {
     pub from: Node,
     pub to: Node,

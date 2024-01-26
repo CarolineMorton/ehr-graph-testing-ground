@@ -1,5 +1,8 @@
 //! This file contains the Node struct and its methods.
 
+// External crates
+use serde::{Deserialize, Serialize};
+
 // Internal modules
 use crate::codelists::codelists::CodeList;
 
@@ -11,6 +14,7 @@ use crate::codelists::codelists::CodeList;
 /// # Arguments
 /// * `codelists` - A vector of codelists
 /// * `name` - The name of the node
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Node {
     pub codelists: Vec<CodeList>,
     pub name: String,

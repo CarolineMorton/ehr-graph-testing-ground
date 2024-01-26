@@ -17,5 +17,6 @@ use crate::records::primary_care_record::PrimaryCareRecord;
 pub struct Patient {
     pub patient_id: String,
     pub year_of_birth: i32,
+    pub gender: String,
     pub records: Vec<PrimaryCareRecord>,
 }

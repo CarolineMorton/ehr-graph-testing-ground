@@ -3,10 +3,27 @@
 // External crates
 use serde::{Deserialize, Serialize};
 use rand::Rng;
+use rand_distr::{Distribution, Normal};
+
+
 
 // Internal modules
 use crate::codelists::codelists::CodeList;
 
+
+fn generate_year(start_year: i32, mean_year: f64, std_dev: f64) -> i32 {
+    let normal = Normal::new(mean_year, std_dev).unwrap();
+
+    let mut rng = rand::thread_rng();
+    let year = loop {
+        let sample = normal.sample(&mut rng).round() as i32;
+        if sample >= start_year && sample <= 2024 {
+            break sample;
+        }
+    };
+
+    year
+}
 
 
 /// A primary care record is a record of a patient's visit to their primary care physician.
@@ -16,7 +33,7 @@ use crate::codelists::codelists::CodeList;
 /// * `code` - The code for the condition
 /// * `term` - The term used to describe the condition
 /// * `date` - The date of the visit
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PrimaryCareRecord {
     pub patient_id: String,
     pub code: i32,
@@ -24,26 +41,26 @@ pub struct PrimaryCareRecord {
     pub date: String,
 }
 
-// impl PrimaryCareRecord {
-//     /// Generate a new primary care record.
-//     ///
-//     /// # Arguments
-//     /// * `patient_id` - The patient's unique identifier.
-//     /// * `code` - The code for the condition
-//     /// * `term` - The term used to describe the condition
-//     /// * `date` - The date of the visit
-//     ///
-//     /// # Returns
-//     /// * A new primary care record.
-//     pub fn new(patient_id: String, code: i32, term: String, date: String) -> PrimaryCareRecord {
-//         PrimaryCareRecord {
-//             patient_id,
-//             code,
-//             term,
-//             date,
-//         }
-//     }
-// }
+impl PrimaryCareRecord {
+    /// Generate a new primary care record.
+    ///
+    /// # Arguments
+    /// * `patient_id` - The patient's unique identifier.
+    /// * `code` - The code for the condition
+    /// * `term` - The term used to describe the condition
+    /// * `date` - The date of the visit
+    ///
+    /// # Returns
+    /// * A new primary care record.
+    pub fn new(patient_id: String, code: i32, term: String, date: String) -> PrimaryCareRecord {
+        PrimaryCareRecord {
+            patient_id,
+            code,
+            term,
+            date,
+        }
+    }
+}
 
 /// A trait for generating a primary care record.
 pub trait RowGenerator {
@@ -61,7 +78,6 @@ impl RowGenerator for PrimaryCareRecord {
     /// # Returns
     /// * A new primary care record.
     fn generate(patient_id: String, year_of_birth: i32, codelist: CodeList) -> PrimaryCareRecord {
-        let num_rows = rand::thread_rng().gen_range(1..5);
 
         let codes = codelist.codes;
         let total_frequency: i32 = codes.iter().map(|c| c.frequency).sum();
@@ -84,22 +100,21 @@ impl RowGenerator for PrimaryCareRecord {
 
         // Pick a random date between 18 years old and 2022
         let year_of_adult = year_of_birth + 18;
-        let year = rand::thread_rng().gen_range(year_of_adult..2022);
+        let mut mean_year = year_of_birth + codelist.mean_age;
+
+        if mean_year >= 2024 {
+            mean_year = 2024
+        }
+
+        let year = generate_year(year_of_adult, mean_year.into(), 10.0);
         let month = rand::thread_rng().gen_range(1..12);
         let day = rand::thread_rng().gen_range(1..28);
 
         // Day and Months need to be padded with a zero if they are less than 10
-        let day = if day < 10 {
-            format!("0{}", day)
-        } else {
-            day.to_string()
-        };
+        let month = format_date(month);
+        let day = format_date(day);
 
-        let month = if month < 10 {
-            format!("0{}", month)
-        } else {
-            month.to_string()
-        };
+        // Format the date
         let date = format!("{}-{}-{}", year, month, day);
 
         PrimaryCareRecord {
@@ -109,4 +124,20 @@ impl RowGenerator for PrimaryCareRecord {
             date: date,
         }
     }
+}
+
+
+/// Format a date digit to a string, padding with a zero if necessary.
+///
+/// # Arguments
+/// * `date_digit` - A date digit.
+///
+/// # Returns
+/// * A string representation of the date digit.
+fn format_date(date_digit: i32) -> String {
+    if date_digit < 10 {
+        return format!("0{}", date_digit)
+    } else {
+        return date_digit.to_string()
+    };
 }

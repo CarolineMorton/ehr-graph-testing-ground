@@ -1,5 +1,11 @@
 //! This file defines the Graph struct and its methods.
 
+// External crates
+use serde::{Deserialize, Serialize};
+
+// Internal modules
+use super::node::Node;
+use super::edge::Edge;
 
 
 
@@ -9,7 +15,8 @@
 /// # Arguments
 /// * `nodes` - A vector of nodes
 /// * `edges` - A vector of edges
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Graph {
-    pub nodes: Vec<Node>,
-    pub edges: Vec<Edge>,
+    pub nodes: Option<Vec<Node>>,
+    pub edges: Option<Vec<Edge>>,
 }
